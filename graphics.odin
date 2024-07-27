@@ -21,7 +21,8 @@ draw :: proc(player_texture: raylib.Texture2D)
 
     BeginDrawing()
     ClearBackground(BLACK)
-    DrawTexture(player_texture, cast(i32)g_player.pos_x, cast(i32)g_player.pos_y, WHITE)
+    // DrawTexture(player_texture, cast(i32)g_player.pos_x, cast(i32)g_player.pos_y, WHITE)
+    DrawTextureEx(player_texture, cast(Vector2){f32(g_player.pos_x), f32(g_player.pos_y)}, 0, 1.5, WHITE)
     EndDrawing()
 }
 

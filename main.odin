@@ -17,7 +17,7 @@ main :: proc()
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
     SetTargetFPS(60)
     
-     player_texture := LoadTexture("./assets/sprites/yellowbird-midflap.png")
+    player_texture := player_get_texture()
     current_action: Action
 
     for !WindowShouldClose() {
