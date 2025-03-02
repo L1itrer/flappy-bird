@@ -13,14 +13,14 @@ Player :: struct {
 Game :: struct {
     player : Player,
     current_state: GameState,
-    pipes : [8]Pipe,
+    pipes : [4]Pipe,
 }
 
 Pipe :: struct {
     upper_hitbox : Rectangle,
     score_hitbox : Rectangle,
     lower_hitbox : Rectangle,
-    pos_x, pos_y : i32
+    pos_x, pos_y : f64
 }
 
 Action :: enum{
@@ -36,38 +36,61 @@ GameState :: enum {
 
 pipes_init :: proc(pipes: []Pipe)
 {
-    magic_y : f64 = 100.0
-    single_pipe_height := 300.0 * SCALE
-    single_pipe_width :=  52.0 * SCALE
-    for i := 0;i < len(pipes);i += 1
+    magic_y : f64 = -250.0
+    for i : i32 = 0;i < i32(len(pipes));i += 1
     {
-        x := f64(200 + i * 100)
+        x := f64(WINDOW_WIDTH + i * PIPE_NEXT_DISTANCE)
         pipes[i] = Pipe{
+            pos_x = x,
+            pos_y = magic_y,
             upper_hitbox = Rectangle{
                 x,
                 magic_y,
-                single_pipe_width,
-                single_pipe_height
+                PIPE_WIDTH,
+                PIPE_HEIGHT
             },
             score_hitbox = Rectangle{
                 x,
-                magic_y + single_pipe_height,
-                single_pipe_width,
-                single_pipe_height
+                magic_y + PIPE_HEIGHT,
+                PIPE_WIDTH,
+                PIPE_SCORE_HEIGHT
             },
             lower_hitbox = Rectangle{
                 x,
-                magic_y + single_pipe_height * 2,
-                single_pipe_width,
-                single_pipe_height
+                magic_y + PIPE_HEIGHT + PIPE_SCORE_HEIGHT,
+                PIPE_WIDTH,
+                PIPE_HEIGHT
             }
         }
+    }
+}
+
+pipe_set_x :: proc(pipe: ^Pipe, x: f64)
+{
+    pipe.pos_x = x
+    pipe.upper_hitbox.x = x
+    pipe.score_hitbox.x = x
+    pipe.lower_hitbox.x = x
+}
+
+pipes_move :: proc(pipes: []Pipe)
+{
+    for &pipe in pipes {
+        if pipe.pos_x <= -PIPE_WIDTH
+        {
+            pipe_set_x(&pipe, f64(WINDOW_WIDTH + i32(len(pipes) - 2) * PIPE_NEXT_DISTANCE))
+        }
+        pipe.pos_x -= PIPE_VELOCITY
+        pipe.score_hitbox.x -= PIPE_VELOCITY
+        pipe.lower_hitbox.x -= PIPE_VELOCITY
+        pipe.upper_hitbox.x -= PIPE_VELOCITY
     }
 }
 
 game_init :: proc(game: ^Game)
 {
     player_init(&game.player)
+    pipes_init(game.pipes[:])
     game.current_state = GameState.GAME_PLAYING
 
 }
@@ -107,6 +130,8 @@ update :: proc(game: ^Game)
     {
         action = Action.JUMP
     }
+
+    pipes_move(game.pipes[:])
 
     player_apply_gravity(&game.player)
     switch action
