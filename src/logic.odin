@@ -1,13 +1,23 @@
 package main
+//TODO: Need my own randomness for wasm module
+import "core:math/rand"
+
 
 Rectangle :: struct {
     x,y, width, height : f64
+}
+
+rectangle_check_collision :: proc(rec1, rec2: Rectangle) -> bool
+{
+    return (rec1.x < (rec2.x + rec2.width) && (rec1.x + rec1.width) > rec2.x) &&
+    (rec1.y < (rec2.y + rec2.height) && (rec1.y + rec1.height) > rec2.y)
 }
 
 Player :: struct {
     hitbox : Rectangle,
     velocity_y: f64,
     current_action: Action,
+    score: i32
 }
 
 Game :: struct {
@@ -20,7 +30,8 @@ Pipe :: struct {
     upper_hitbox : Rectangle,
     score_hitbox : Rectangle,
     lower_hitbox : Rectangle,
-    pos_x, pos_y : f64
+    pos_x, pos_y : f64,
+    scored: bool
 }
 
 Action :: enum{
@@ -36,9 +47,10 @@ GameState :: enum {
 
 pipes_init :: proc(pipes: []Pipe)
 {
-    magic_y : f64 = -250.0
     for i : i32 = 0;i < i32(len(pipes));i += 1
     {
+        possible_ys := PIPE_POSSIBLE_YS
+        magic_y : f64 = rand.choice(possible_ys[:])
         x := f64(WINDOW_WIDTH + i * PIPE_NEXT_DISTANCE)
         pipes[i] = Pipe{
             pos_x = x,
@@ -65,12 +77,17 @@ pipes_init :: proc(pipes: []Pipe)
     }
 }
 
-pipe_set_x :: proc(pipe: ^Pipe, x: f64)
+pipe_set_xy :: proc(pipe: ^Pipe, x: f64, y: f64)
 {
     pipe.pos_x = x
     pipe.upper_hitbox.x = x
     pipe.score_hitbox.x = x
     pipe.lower_hitbox.x = x
+
+    pipe.pos_y = y
+    pipe.upper_hitbox.y = y
+    pipe.score_hitbox.y = y + PIPE_HEIGHT
+    pipe.lower_hitbox.y = y + PIPE_HEIGHT + PIPE_SCORE_HEIGHT
 }
 
 pipes_move :: proc(pipes: []Pipe)
@@ -78,7 +95,13 @@ pipes_move :: proc(pipes: []Pipe)
     for &pipe in pipes {
         if pipe.pos_x <= -PIPE_WIDTH
         {
-            pipe_set_x(&pipe, f64(WINDOW_WIDTH + i32(len(pipes) - 2) * PIPE_NEXT_DISTANCE))
+            possible_ys := PIPE_POSSIBLE_YS
+            magic_y : f64 = rand.choice(possible_ys[:])
+            pipe_set_xy(&pipe,
+                f64(WINDOW_WIDTH + i32(len(pipes) - 2) * PIPE_NEXT_DISTANCE),
+                magic_y
+            );
+            pipe.scored = false
         }
         pipe.pos_x -= PIPE_VELOCITY
         pipe.score_hitbox.x -= PIPE_VELOCITY
@@ -100,8 +123,9 @@ player_init :: proc(player: ^Player)
     player.hitbox = Rectangle{
         x = 100.0,
         y = f64(WINDOW_HEIGHT/2),
-        width = 34.0,
-        height = 24.0,
+        width = 28.0,
+        height = 20.0,
+        // a value i pulled out of nowhere
     }
 
     player.current_action = Action.NONE
@@ -122,14 +146,18 @@ player_apply_gravity :: proc(player: ^Player)
     player.hitbox.y += player.velocity_y
 }
 
+
+
 update :: proc(game: ^Game)
 {
     action := game.player.current_action
-    //TODO: Debug so that no falling out of bounds
-    if i32(game.player.hitbox.y) > WINDOW_HEIGHT
-    {
-        action = Action.JUMP
+    when ODIN_DEBUG{
+        if i32(game.player.hitbox.y) > WINDOW_HEIGHT
+        {
+            action = Action.JUMP
+        }
     }
+
 
     pipes_move(game.pipes[:])
 
@@ -140,5 +168,21 @@ update :: proc(game: ^Game)
             player_jump(&game.player)
         case .NONE:
         case:
+    }
+
+    for &pipe in game.pipes
+    {
+        if rectangle_check_collision(game.player.hitbox, pipe.score_hitbox) && !pipe.scored
+        {
+            game.player.score += 1
+            pipe.scored = true
+        }
+
+        if rectangle_check_collision(game.player.hitbox, pipe.lower_hitbox) ||
+            rectangle_check_collision(game.player.hitbox, pipe.upper_hitbox)
+        {
+            when !ODIN_DEBUG do game.current_state = GameState.GAME_OVER
+
+        }
     }
 }

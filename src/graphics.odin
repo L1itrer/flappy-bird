@@ -46,10 +46,11 @@ pipe_draw :: proc(pipe: Pipe, texture: ray.Texture2D)
         f32(SCALE),
         ray.WHITE
     )
-
-    hitbox_draw(pipe.upper_hitbox)
-    hitbox_draw(pipe.lower_hitbox)
-    hitbox_draw(pipe.score_hitbox, ray.GREEN)
+    when ODIN_DEBUG{
+        hitbox_draw(pipe.upper_hitbox)
+        hitbox_draw(pipe.lower_hitbox)
+        hitbox_draw(pipe.score_hitbox, ray.GREEN)
+    }
 
 }
 
@@ -73,23 +74,21 @@ draw :: proc(game: Game, textures: Textures)
     ray.BeginDrawing()
     ray.ClearBackground(ray.BLACK)
 
-
-    player_position := ray.Vector2{f32(game.player.hitbox.x) - 5.0, f32(game.player.hitbox.y) - 5.0}
+    //TODO: player drawing in a separate function
+    NUDGE :: -7.5
+    player_position := ray.Vector2{f32(game.player.hitbox.x) + NUDGE, f32(game.player.hitbox.y) + NUDGE}
     ray.DrawTextureEx(
         textures.player_texture,
         player_position,
         rotation = 0,
         scale = f32(PLAYER_TEXTURE_SCALE),
         tint = ray.WHITE)
+    when ODIN_DEBUG do hitbox_draw(game.player.hitbox, ray.WHITE)
 
     for pipe in game.pipes {
         pipe_draw(pipe, textures.pipe_texture)
     }
-
-    //DEBUG
-    ray.DrawRectangleLines(i32(game.player.hitbox.x), i32(game.player.hitbox.y),
-            i32(game.player.hitbox.width),i32(game.player.hitbox.height),
-            ray.RED)
+    ray.DrawText(ray.TextFormat("%d", game.player.score), 30, 30, 50, ray.WHITE)
     ray.EndDrawing()
 }
 
