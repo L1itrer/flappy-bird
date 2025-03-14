@@ -114,7 +114,7 @@ game_init :: proc(game: ^Game)
 {
     player_init(&game.player)
     pipes_init(game.pipes[:])
-    game.current_state = GameState.GAME_PLAYING
+    game.current_state = GameState.MAIN_MENU
 
 }
 
@@ -129,6 +129,8 @@ player_init :: proc(player: ^Player)
     }
 
     player.current_action = Action.NONE
+    player.score = 0 // explicit initialization because this function may be called more than once
+    player.velocity_y = 0
 }
 
 player_jump :: proc(player: ^Player)
@@ -147,8 +149,7 @@ player_apply_gravity :: proc(player: ^Player)
 }
 
 
-
-update :: proc(game: ^Game)
+game_playing :: proc(game: ^Game)
 {
     action := game.player.current_action
     when ODIN_DEBUG{
@@ -179,10 +180,46 @@ update :: proc(game: ^Game)
         }
 
         if rectangle_check_collision(game.player.hitbox, pipe.lower_hitbox) ||
-            rectangle_check_collision(game.player.hitbox, pipe.upper_hitbox)
+        rectangle_check_collision(game.player.hitbox, pipe.upper_hitbox)
         {
-            when !ODIN_DEBUG do game.current_state = GameState.GAME_OVER
-
+            game.current_state = GameState.GAME_OVER
         }
     }
+}
+
+main_menu :: proc(game: ^Game)
+{
+    action := game.player.current_action
+
+    switch action
+    {
+        case .JUMP:
+            game.current_state = GameState.GAME_PLAYING
+            game_playing(game)
+        case .NONE:
+        case:
+    }
+}
+
+game_reset :: proc(game: ^Game)
+{
+    pipes_init(game.pipes[:])
+    player_init(&game.player)
+}
+
+update :: proc(game: ^Game)
+{
+
+    switch game.current_state
+    {
+        case .MAIN_MENU:
+            main_menu(game)
+        case .GAME_PLAYING:
+            game_playing(game)
+        case .GAME_OVER:
+            pipes_init(game.pipes[:])
+            player_init(&game.player)
+            game.current_state = GameState.MAIN_MENU
+    }
+
 }

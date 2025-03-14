@@ -96,7 +96,7 @@ poll :: proc(action: ^Action)
 {
     switch 
     {
-        case ray.IsKeyPressed(ray.KeyboardKey.SPACE):
+        case ray.IsKeyPressed(ray.KeyboardKey.SPACE) || ray.IsMouseButtonPressed(ray.MouseButton.LEFT):
             action^ = Action.JUMP
         case:
             action^ = Action.NONE

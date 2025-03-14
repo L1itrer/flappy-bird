@@ -22,7 +22,7 @@ main :: proc()
     textures := textures_load()
 
 
-    for !ray.WindowShouldClose() && game.current_state != GameState.GAME_OVER {
+    for !ray.WindowShouldClose() {
         poll(&game.player.current_action)
 
         update(&game)
