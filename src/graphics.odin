@@ -3,7 +3,9 @@ package main
 import ray "vendor:raylib"
 
 Textures :: struct {
-    player_texture, pipe_texture : ray.Texture2D
+    pipe_texture : ray.Texture2D,
+    ground_texture: ray.Texture2D,
+    player_textures : [3]ray.Texture2D
 }
 
 player_get_texture :: proc() -> ray.Texture2D
@@ -57,8 +59,11 @@ pipe_draw :: proc(pipe: Pipe, texture: ray.Texture2D)
 textures_load :: proc() -> Textures
 {
     textures := Textures{
-        player_texture = ray.LoadTexture("./assets/sprites/yellowbird-midflap.png"),
         pipe_texture = ray.LoadTexture("./assets/sprites/pipe-green.png"),
+        ground_texture = ray.LoadTexture("./assets/sprites/base.png"),
+        player_textures = {ray.LoadTexture("./assets/sprites/redbird-downflap.png"),
+        ray.LoadTexture("./assets/sprites/redbird-midflap.png"),
+        ray.LoadTexture("./assets/sprites/redbird-upflap.png")}
     }
     return textures
 }
@@ -66,7 +71,10 @@ textures_load :: proc() -> Textures
 textures_unload :: proc(textures: Textures)
 {
     ray.UnloadTexture(textures.pipe_texture)
-    ray.UnloadTexture(textures.player_texture)
+    for texture in textures.player_textures
+    {
+        ray.UnloadTexture(texture)
+    }
 }
 
 draw :: proc(game: Game, textures: Textures)
@@ -78,7 +86,7 @@ draw :: proc(game: Game, textures: Textures)
     NUDGE :: -7.5
     player_position := ray.Vector2{f32(game.player.hitbox.x) + NUDGE, f32(game.player.hitbox.y) + NUDGE}
     ray.DrawTextureEx(
-        textures.player_texture,
+        textures.player_textures[game.player.current_frame],
         player_position,
         rotation = 0,
         scale = f32(PLAYER_TEXTURE_SCALE),
@@ -88,7 +96,9 @@ draw :: proc(game: Game, textures: Textures)
     for pipe in game.pipes {
         pipe_draw(pipe, textures.pipe_texture)
     }
+
     ray.DrawText(ray.TextFormat("%d", game.player.score), 30, 30, 50, ray.WHITE)
+    ray.DrawText(ray.TextFormat("FPS: %d", ray.GetFPS()), 30, 80, 20, ray.WHITE)
     ray.EndDrawing()
 }
 

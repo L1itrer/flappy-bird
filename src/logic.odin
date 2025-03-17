@@ -1,10 +1,11 @@
 package main
 //TODO: Need my own randomness for wasm module
+// or maybe just use random from javascript?
 import "core:math/rand"
 
 
 Rectangle :: struct {
-    x,y, width, height : f64
+    x,y, width, height : f32
 }
 
 rectangle_check_collision :: proc(rec1, rec2: Rectangle) -> bool
@@ -15,9 +16,11 @@ rectangle_check_collision :: proc(rec1, rec2: Rectangle) -> bool
 
 Player :: struct {
     hitbox : Rectangle,
-    velocity_y: f64,
+    velocity_y: f32,
     current_action: Action,
-    score: i32
+    score: i32,
+    current_frame: i32,
+    frame_counter: i32
 }
 
 Game :: struct {
@@ -30,7 +33,7 @@ Pipe :: struct {
     upper_hitbox : Rectangle,
     score_hitbox : Rectangle,
     lower_hitbox : Rectangle,
-    pos_x, pos_y : f64,
+    pos_x, pos_y : f32,
     scored: bool
 }
 
@@ -50,8 +53,8 @@ pipes_init :: proc(pipes: []Pipe)
     for i : i32 = 0;i < i32(len(pipes));i += 1
     {
         possible_ys := PIPE_POSSIBLE_YS
-        magic_y : f64 = rand.choice(possible_ys[:])
-        x := f64(WINDOW_WIDTH + i * PIPE_NEXT_DISTANCE)
+        magic_y := rand.choice(possible_ys[:])
+        x := f32(WINDOW_WIDTH + i * PIPE_NEXT_DISTANCE)
         pipes[i] = Pipe{
             pos_x = x,
             pos_y = magic_y,
@@ -77,7 +80,7 @@ pipes_init :: proc(pipes: []Pipe)
     }
 }
 
-pipe_set_xy :: proc(pipe: ^Pipe, x: f64, y: f64)
+pipe_set_xy :: proc(pipe: ^Pipe, x: f32, y: f32)
 {
     pipe.pos_x = x
     pipe.upper_hitbox.x = x
@@ -96,17 +99,18 @@ pipes_move :: proc(pipes: []Pipe)
         if pipe.pos_x <= -PIPE_WIDTH
         {
             possible_ys := PIPE_POSSIBLE_YS
-            magic_y : f64 = rand.choice(possible_ys[:])
+            magic_y : f32 = rand.choice(possible_ys[:])
             pipe_set_xy(&pipe,
-                f64(WINDOW_WIDTH + i32(len(pipes) - 2) * PIPE_NEXT_DISTANCE),
+                f32(WINDOW_WIDTH + i32(len(pipes) - 2) * PIPE_NEXT_DISTANCE),
                 magic_y
             );
             pipe.scored = false
         }
-        pipe.pos_x -= PIPE_VELOCITY
-        pipe.score_hitbox.x -= PIPE_VELOCITY
-        pipe.lower_hitbox.x -= PIPE_VELOCITY
-        pipe.upper_hitbox.x -= PIPE_VELOCITY
+        move_by := PIPE_VELOCITY
+        pipe.pos_x -= move_by
+        pipe.score_hitbox.x -= move_by
+        pipe.lower_hitbox.x -= move_by
+        pipe.upper_hitbox.x -= move_by
     }
 }
 
@@ -122,7 +126,7 @@ player_init :: proc(player: ^Player)
 {
     player.hitbox = Rectangle{
         x = 100.0,
-        y = f64(WINDOW_HEIGHT/2),
+        y = f32(WINDOW_HEIGHT/2),
         width = 28.0,
         height = 20.0,
         // a value i pulled out of nowhere
@@ -138,8 +142,15 @@ player_jump :: proc(player: ^Player)
     player.velocity_y = PLAYER_JUMP_VELOCITY
 }
 
+player_play_animation :: proc(player: ^Player)
+{
+    player.frame_counter = (player.frame_counter + 1) % PLAYER_ANIM_SPEED
+    if player.frame_counter == 0 do player.current_frame = (player.current_frame + 1) % PLYER_ANIM_FRAME_COUNT
+}
+
 player_apply_gravity :: proc(player: ^Player)
 {
+    player_play_animation(player)
     player.velocity_y += PLAYER_VELOCITY_INCREASE
     if player.velocity_y > PLAYER_VELOCITY_TERMINAL
     {
@@ -177,6 +188,7 @@ game_playing :: proc(game: ^Game)
         {
             game.player.score += 1
             pipe.scored = true
+            //PIPE_VELOCITY += 10 :D
         }
 
         if rectangle_check_collision(game.player.hitbox, pipe.lower_hitbox) ||
@@ -190,6 +202,7 @@ game_playing :: proc(game: ^Game)
 main_menu :: proc(game: ^Game)
 {
     action := game.player.current_action
+    player_play_animation(&game.player)
 
     switch action
     {

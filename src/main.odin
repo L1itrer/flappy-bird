@@ -3,6 +3,9 @@ package main
 import "core:fmt"
 import ray "vendor:raylib"
 
+TARGET_FPS :: 60
+TARGET_FRAME_TIME : f64 : 1.0/TARGET_FPS
+
 
 main :: proc()
 {
@@ -10,16 +13,19 @@ main :: proc()
     when ODIN_DEBUG {
         fmt.println("...with Debugging!")
     }
+
+
     game: Game
     
     game_init(&game)
 
-    
+
     ray.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
     ray.SetExitKey(ray.KeyboardKey.KEY_NULL)
-    ray.SetTargetFPS(60)
+    ray.SetTargetFPS(TARGET_FPS)
 
     textures := textures_load()
+
 
 
     for !ray.WindowShouldClose() {
