@@ -33,7 +33,7 @@ main :: proc()
 
         update(&game)
 
-        draw(game, textures)
+        draw(&game, textures)
     }
 
     ray.CloseWindow()

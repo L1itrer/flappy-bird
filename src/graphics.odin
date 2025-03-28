@@ -8,6 +8,7 @@ Textures :: struct {
     player_textures : [3]ray.Texture2D
 }
 
+
 player_get_texture :: proc() -> ray.Texture2D
 {
     player_image := ray.LoadImage("./assets/sprites/yellowbird-midflap.png")
@@ -21,13 +22,7 @@ player_get_texture :: proc() -> ray.Texture2D
 
 hitbox_draw :: proc(hitbox: Rectangle, color := ray.RED)
 {
-    ray.DrawRectangleLines(
-        i32(hitbox.x),
-        i32(hitbox.y),
-        i32(hitbox.width),
-        i32(hitbox.height),
-        color
-    )
+    ray.DrawRectangleLinesEx(ray.Rectangle(hitbox), 3.0, color)
 }
 
 pipe_draw :: proc(pipe: Pipe, texture: ray.Texture2D)
@@ -77,7 +72,19 @@ textures_unload :: proc(textures: Textures)
     }
 }
 
-draw :: proc(game: Game, textures: Textures)
+ground_draw :: proc(ground: []Rectangle, textures: Textures)
+{
+    for ground_piece in ground
+    {
+        when ODIN_DEBUG
+        {
+            hitbox_draw(ground_piece)
+        }
+        ray.DrawTexture(textures.ground_texture, i32(ground_piece.x), i32(ground_piece.y), ray.WHITE)
+    }
+}
+
+draw :: proc(game: ^Game, textures: Textures)
 {
     ray.BeginDrawing()
     ray.ClearBackground(ray.BLACK)
@@ -99,6 +106,7 @@ draw :: proc(game: Game, textures: Textures)
 
     ray.DrawText(ray.TextFormat("%d", game.player.score), 30, 30, 50, ray.WHITE)
     ray.DrawText(ray.TextFormat("FPS: %d", ray.GetFPS()), 30, 80, 20, ray.WHITE)
+    ground_draw(game.ground[:], textures)
     ray.EndDrawing()
 }
 

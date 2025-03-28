@@ -1,8 +1,15 @@
 package main
-//TODO: Need my own randomness for wasm module
-// or maybe just use random from javascript?
+
 import "core:math/rand"
 
+//DONE: Add loopable ground
+//DONE: Player dies when falling to the ground
+//TODO: What the hell happens when player tries to go above the pipes
+//TODO: Add background
+//TODO: Add game over screen
+//TODO: Improve game menu
+//TODO: Add pause menu
+//TODO: Add sounds
 
 Rectangle :: struct {
     x,y, width, height : f32
@@ -26,6 +33,7 @@ Player :: struct {
 Game :: struct {
     player : Player,
     current_state: GameState,
+    ground: [4]Rectangle,
     pipes : [4]Pipe,
 }
 
@@ -114,10 +122,47 @@ pipes_move :: proc(pipes: []Pipe)
     }
 }
 
+ground_init :: proc(ground: []Rectangle)
+{
+    ground_height :: 112
+//    ground[0] = Rectangle{
+//        x = 0,
+//        y = f32(WINDOW_HEIGHT - ground_height),
+//        width = f32(WINDOW_WIDTH),
+//        height = ground_height
+//    }
+//    ground[1] = Rectangle{
+//        x = f32(WINDOW_WIDTH),
+//        y = f32(WINDOW_HEIGHT - ground_height),
+//        width = f32(WINDOW_WIDTH),
+//        height = ground_height
+//    }
+    for i := 0;i < len(ground);i += 1
+    {
+        ground[i].width = 336
+        ground[i].x = f32(i) * ground[i].width
+        ground[i].y = f32(WINDOW_HEIGHT - ground_height)
+        ground[i].height = ground_height
+    }
+}
+
+ground_update :: proc(ground: []Rectangle)
+{
+    for &ground_piece in ground
+    {
+        if ground_piece.x + ground_piece.width <= 0
+        {
+            ground_piece.x = f32(WINDOW_WIDTH)
+        }
+        ground_piece.x -= PIPE_VELOCITY
+    }
+}
+
 game_init :: proc(game: ^Game)
 {
     player_init(&game.player)
     pipes_init(game.pipes[:])
+    ground_init(game.ground[:])
     game.current_state = GameState.MAIN_MENU
 
 }
@@ -197,6 +242,16 @@ game_playing :: proc(game: ^Game)
             game.current_state = GameState.GAME_OVER
         }
     }
+
+    for ground_piece in game.ground
+    {
+        if rectangle_check_collision(game.player.hitbox, ground_piece)
+        {
+            game.current_state = GameState.GAME_OVER
+        }
+    }
+
+    ground_update(game.ground[:])
 }
 
 main_menu :: proc(game: ^Game)
