@@ -4,8 +4,9 @@ import "core:math/rand"
 
 //DONE: Add loopable ground
 //DONE: Player dies when falling to the ground
-//TODO: What the hell happens when player tries to go above the pipes
+//DONE: What the hell happens when player tries to go above the pipes
 //DONE: Add background
+//TODO: Tracking Highest Score
 //TODO: Add game over screen
 //TODO: Improve game menu
 //TODO: Add pause menu
@@ -30,6 +31,7 @@ Player :: struct {
     velocity_y: f32,
     current_action: Action,
     score: i32,
+    highest_score : i32,
     current_frame: i32,
     frame_counter: i32
 }
@@ -190,8 +192,8 @@ player_init :: proc(player: ^Player)
     player.hitbox = Rectangle{
         x = 100.0,
         y = f32(WINDOW_HEIGHT/2),
-        width = 28.0,
-        height = 20.0,
+        width = 34.0,
+        height = 30.0,
         // a value i pulled out of nowhere
     }
 
@@ -211,8 +213,17 @@ player_play_animation :: proc(player: ^Player)
     if player.frame_counter == 0 do player.current_frame = (player.current_frame + 1) % PLYER_ANIM_FRAME_COUNT
 }
 
-player_apply_gravity :: proc(player: ^Player)
+player_apply_gravity :: proc(player: ^Player, ground: []Rectangle)
 {
+
+    for ground_piece in ground
+    {
+        if rectangle_check_collision(player.hitbox, ground_piece)
+        {
+            player.velocity_y = 0
+            return
+        }
+    }
     player_play_animation(player)
     player.velocity_y += PLAYER_VELOCITY_INCREASE
     if player.velocity_y > PLAYER_VELOCITY_TERMINAL
@@ -220,6 +231,7 @@ player_apply_gravity :: proc(player: ^Player)
         player.velocity_y = PLAYER_VELOCITY_TERMINAL
     }
     player.hitbox.y += player.velocity_y
+
 }
 
 
@@ -236,7 +248,7 @@ game_playing :: proc(game: ^Game)
 
     pipes_move(game.pipes[:])
 
-    player_apply_gravity(&game.player)
+    player_apply_gravity(&game.player, game.ground[:])
     switch action
     {
         case .JUMP:
@@ -298,6 +310,24 @@ game_reset :: proc(game: ^Game)
     player_init(&game.player)
 }
 
+
+
+game_over :: proc(game: ^Game)
+{
+    action := game.player.current_action
+    player_apply_gravity(&game.player, game.ground[:])
+    switch action
+    {
+        case .JUMP:
+            game_reset(game)
+            game.current_state = GameState.MAIN_MENU
+            game_playing(game)
+        case .NONE:
+
+        case:
+    }
+}
+
 update :: proc(game: ^Game)
 {
 
@@ -308,9 +338,11 @@ update :: proc(game: ^Game)
         case .GAME_PLAYING:
             game_playing(game)
         case .GAME_OVER:
-            pipes_init(game.pipes[:])
-            player_init(&game.player)
-            game.current_state = GameState.MAIN_MENU
+            if game.player.score > game.player.highest_score
+            {
+                game.player.highest_score = game.player.score
+            }
+            game_over(game)
     }
 
 }

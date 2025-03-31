@@ -38,5 +38,5 @@ main :: proc()
 
     ray.CloseWindow()
     textures_unload(textures)
-    fmt.printfln("Your score was: %v!", game.player.score)
+    fmt.printfln("Your highest score was: %v!", game.player.highest_score)
 }

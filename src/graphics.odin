@@ -6,7 +6,8 @@ Textures :: struct {
     pipe_texture : ray.Texture2D,
     ground_texture: ray.Texture2D,
     player_textures : [3]ray.Texture2D,
-    background_texture: ray.Texture2D
+    background_texture: ray.Texture2D,
+    game_over_texture: ray.Texture2D
 }
 
 
@@ -60,7 +61,8 @@ textures_load :: proc() -> Textures
         player_textures = {ray.LoadTexture("./assets/sprites/redbird-downflap.png"),
             ray.LoadTexture("./assets/sprites/redbird-midflap.png"),
             ray.LoadTexture("./assets/sprites/redbird-upflap.png")},
-        background_texture = ray.LoadTexture("./assets/sprites/background-night.png")
+        background_texture = ray.LoadTexture("./assets/sprites/background-night.png"),
+        game_over_texture = ray.LoadTexture("./assets/sprites/gameover.png")
     }
     return textures
 }
@@ -119,6 +121,12 @@ draw :: proc(game: ^Game, textures: Textures)
     ray.DrawText(ray.TextFormat("%d", game.player.score), 30, 30, 50, ray.WHITE)
     ray.DrawText(ray.TextFormat("FPS: %d", ray.GetFPS()), 30, 80, 20, ray.WHITE)
     ground_draw(game.ground[:], textures)
+
+    if game.current_state == GameState.GAME_OVER
+    {
+        ray.DrawTextureEx(textures.game_over_texture, ray.Vector2({50, 100}), 0, 2, ray.WHITE)
+    }
+
     ray.EndDrawing()
 }
 
