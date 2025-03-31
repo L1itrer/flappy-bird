@@ -5,7 +5,8 @@ import ray "vendor:raylib"
 Textures :: struct {
     pipe_texture : ray.Texture2D,
     ground_texture: ray.Texture2D,
-    player_textures : [3]ray.Texture2D
+    player_textures : [3]ray.Texture2D,
+    background_texture: ray.Texture2D
 }
 
 
@@ -57,8 +58,9 @@ textures_load :: proc() -> Textures
         pipe_texture = ray.LoadTexture("./assets/sprites/pipe-green.png"),
         ground_texture = ray.LoadTexture("./assets/sprites/base.png"),
         player_textures = {ray.LoadTexture("./assets/sprites/redbird-downflap.png"),
-        ray.LoadTexture("./assets/sprites/redbird-midflap.png"),
-        ray.LoadTexture("./assets/sprites/redbird-upflap.png")}
+            ray.LoadTexture("./assets/sprites/redbird-midflap.png"),
+            ray.LoadTexture("./assets/sprites/redbird-upflap.png")},
+        background_texture = ray.LoadTexture("./assets/sprites/background-night.png")
     }
     return textures
 }
@@ -84,10 +86,20 @@ ground_draw :: proc(ground: []Rectangle, textures: Textures)
     }
 }
 
+
+background_draw :: proc(background: []Point, texture: ray.Texture2D)
+{
+    for background_piece in background
+    {
+        ray.DrawTextureEx(texture, ray.Vector2({background_piece.x, background_piece.y}), 0, PLAYER_TEXTURE_SCALE, ray.WHITE)
+    }
+}
+
 draw :: proc(game: ^Game, textures: Textures)
 {
     ray.BeginDrawing()
     ray.ClearBackground(ray.BLACK)
+    background_draw(game.background[:], textures.background_texture)
 
     //TODO: player drawing in a separate function
     NUDGE :: -7.5

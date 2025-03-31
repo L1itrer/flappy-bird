@@ -5,7 +5,7 @@ import "core:math/rand"
 //DONE: Add loopable ground
 //DONE: Player dies when falling to the ground
 //TODO: What the hell happens when player tries to go above the pipes
-//TODO: Add background
+//DONE: Add background
 //TODO: Add game over screen
 //TODO: Improve game menu
 //TODO: Add pause menu
@@ -13,6 +13,10 @@ import "core:math/rand"
 
 Rectangle :: struct {
     x,y, width, height : f32
+}
+
+Point :: struct {
+    x, y: f32
 }
 
 rectangle_check_collision :: proc(rec1, rec2: Rectangle) -> bool
@@ -31,10 +35,12 @@ Player :: struct {
 }
 
 Game :: struct {
-    player : Player,
-    current_state: GameState,
     ground: [4]Rectangle,
     pipes : [4]Pipe,
+    player : Player,
+    background: [3]Point,
+    current_state: GameState,
+
 }
 
 Pipe :: struct {
@@ -125,18 +131,6 @@ pipes_move :: proc(pipes: []Pipe)
 ground_init :: proc(ground: []Rectangle)
 {
     ground_height :: 112
-//    ground[0] = Rectangle{
-//        x = 0,
-//        y = f32(WINDOW_HEIGHT - ground_height),
-//        width = f32(WINDOW_WIDTH),
-//        height = ground_height
-//    }
-//    ground[1] = Rectangle{
-//        x = f32(WINDOW_WIDTH),
-//        y = f32(WINDOW_HEIGHT - ground_height),
-//        width = f32(WINDOW_WIDTH),
-//        height = ground_height
-//    }
     for i := 0;i < len(ground);i += 1
     {
         ground[i].width = 336
@@ -158,13 +152,37 @@ ground_update :: proc(ground: []Rectangle)
     }
 }
 
+background_init :: proc(background: []Point)
+{
+    for i := 0; i < len(background); i += 1
+    {
+        background[i] = Point{
+            x = BACKGROUND_WIDTH * f32(i) - f32(i*1)
+            // y is zero
+        }
+    }
+}
+
+background_update :: proc(background: []Point)
+{
+    for &background_piece in background
+    {
+        if background_piece.x + BACKGROUND_WIDTH <= 0
+        {
+            background_piece.x = f32(WINDOW_WIDTH)
+        }
+        background_piece.x -= BACKGROUND_VELOCITY
+    }
+}
+
+
 game_init :: proc(game: ^Game)
 {
     player_init(&game.player)
     pipes_init(game.pipes[:])
     ground_init(game.ground[:])
+    background_init(game.background[:])
     game.current_state = GameState.MAIN_MENU
-
 }
 
 player_init :: proc(player: ^Player)
@@ -208,7 +226,7 @@ player_apply_gravity :: proc(player: ^Player)
 game_playing :: proc(game: ^Game)
 {
     action := game.player.current_action
-    when ODIN_DEBUG{
+    when ODIN_DEBUG || GODMODE == true{
         if i32(game.player.hitbox.y) > WINDOW_HEIGHT
         {
             action = Action.JUMP
@@ -235,23 +253,26 @@ game_playing :: proc(game: ^Game)
             pipe.scored = true
             //PIPE_VELOCITY += 10 :D
         }
-
-        if rectangle_check_collision(game.player.hitbox, pipe.lower_hitbox) ||
-        rectangle_check_collision(game.player.hitbox, pipe.upper_hitbox)
-        {
-            game.current_state = GameState.GAME_OVER
+        when GODMODE == false {
+            if rectangle_check_collision(game.player.hitbox, pipe.lower_hitbox) ||
+            rectangle_check_collision(game.player.hitbox, pipe.upper_hitbox)
+            {
+                game.current_state = GameState.GAME_OVER
+            }
         }
     }
-
-    for ground_piece in game.ground
-    {
-        if rectangle_check_collision(game.player.hitbox, ground_piece)
+    when GODMODE == false{
+        for ground_piece in game.ground
         {
-            game.current_state = GameState.GAME_OVER
+            if rectangle_check_collision(game.player.hitbox, ground_piece)
+            {
+                game.current_state = GameState.GAME_OVER
+            }
         }
     }
 
     ground_update(game.ground[:])
+    background_update(game.background[:])
 }
 
 main_menu :: proc(game: ^Game)
@@ -272,6 +293,8 @@ main_menu :: proc(game: ^Game)
 game_reset :: proc(game: ^Game)
 {
     pipes_init(game.pipes[:])
+    ground_init(game.ground[:])
+    background_init(game.background[:])
     player_init(&game.player)
 }
 
