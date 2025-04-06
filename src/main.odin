@@ -8,7 +8,45 @@ import "core:os"
 TARGET_FPS :: 60
 TARGET_FRAME_TIME : f64 : 1.0/TARGET_FPS
 
+Sound :: enum {
+    JUMP_SOUND,
+    DEATH_SOUND,
+    SCORE_SOUND
+}
 
+Sounds :: struct {
+    jump_sound: ray.Sound,
+    death_sound: ray.Sound,
+    score_sound: ray.Sound
+}
+
+g_sounds: Sounds
+sounds_load :: proc()
+{
+    g_sounds.jump_sound = ray.LoadSound("./assets/audio/wing.ogg")
+    g_sounds.death_sound = ray.LoadSound("./assets/audio/hit.ogg")
+    g_sounds.score_sound = ray.LoadSound("./assets/audio/point.ogg")
+}
+
+sounds_unload :: proc()
+{
+    ray.UnloadSound(g_sounds.jump_sound)
+    ray.UnloadSound(g_sounds.death_sound)
+    ray.UnloadSound(g_sounds.score_sound)
+}
+
+sound_play :: proc(sound: Sound)
+{
+    switch sound
+    {
+        case .JUMP_SOUND:
+            ray.PlaySound(g_sounds.jump_sound)
+        case .DEATH_SOUND:
+            ray.PlaySound(g_sounds.death_sound)
+        case .SCORE_SOUND:
+            ray.PlaySound(g_sounds.score_sound)
+    }
+}
 
 Sounds :: struct {
     jump_sound: ray.Sound,
