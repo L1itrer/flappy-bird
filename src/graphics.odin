@@ -7,7 +7,8 @@ Textures :: struct {
     ground_texture: ray.Texture2D,
     player_textures : [3]ray.Texture2D,
     background_texture: ray.Texture2D,
-    game_over_texture: ray.Texture2D
+    game_over_texture: ray.Texture2D,
+    main_menu_texture: ray.Texture2D
 }
 
 
@@ -62,7 +63,8 @@ textures_load :: proc() -> Textures
             ray.LoadTexture("./assets/sprites/redbird-midflap.png"),
             ray.LoadTexture("./assets/sprites/redbird-upflap.png")},
         background_texture = ray.LoadTexture("./assets/sprites/background-night.png"),
-        game_over_texture = ray.LoadTexture("./assets/sprites/gameover.png")
+        game_over_texture = ray.LoadTexture("./assets/sprites/gameover.png"),
+        main_menu_texture = ray.LoadTexture("./assets/sprites/message.png")
     }
     return textures
 }
@@ -109,7 +111,7 @@ draw :: proc(game: ^Game, textures: Textures)
     ray.DrawTextureEx(
         textures.player_textures[game.player.current_frame],
         player_position,
-        rotation = 0,
+        rotation = game.player.velocity_y,
         scale = f32(PLAYER_TEXTURE_SCALE),
         tint = ray.WHITE)
     when ODIN_DEBUG do hitbox_draw(game.player.hitbox, ray.WHITE)
@@ -119,7 +121,7 @@ draw :: proc(game: ^Game, textures: Textures)
     }
 
     ray.DrawText(ray.TextFormat("%d", game.player.score), 30, 30, 50, ray.WHITE)
-    ray.DrawText(ray.TextFormat("FPS: %d", ray.GetFPS()), 30, 80, 20, ray.WHITE)
+//    ray.DrawText(ray.TextFormat("FPS: %d", ray.GetFPS()), 30, 80, 20, ray.WHITE)
     ground_draw(game.ground[:], textures)
 
     if game.current_state == GameState.GAME_OVER
@@ -147,6 +149,12 @@ draw :: proc(game: ^Game, textures: Textures)
     if game.current_state == GameState.GAME_PAUSE
     {
         ray.DrawText("PAUSED", WINDOW_WIDTH/2 - 100, 430, 30, ray.WHITE)
+    }
+
+    if game.current_state == GameState.MAIN_MENU
+    {
+//        ray.DrawTextureEx(textures.main_menu_texture, ray.Vector2({90,100}), 0, 2, ray.WHITE)
+        ray.DrawText("Flappy bird", 100, 100, 50, ray.WHITE)
     }
 
     ray.EndDrawing()
