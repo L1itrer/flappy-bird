@@ -9,7 +9,7 @@ import "core:math/rand"
 //DONE: Tracking Highest Score
 //DONE: Add game over screen
 //TODO: Improve game menu
-//TODO: Add pause menu
+//DONE: Add pause menu
 //TODO: Add sounds
 
 Rectangle :: struct {
@@ -56,12 +56,14 @@ Pipe :: struct {
 Action :: enum{
     NONE,
     JUMP,
+    PAUSE,
 }
 
 GameState :: enum {
     GAME_PLAYING,
     MAIN_MENU,
     GAME_OVER,
+    GAME_PAUSE,
 }
 
 pipes_init :: proc(pipes: []Pipe)
@@ -252,6 +254,9 @@ game_playing :: proc(game: ^Game)
     {
         case .JUMP:
             player_jump(&game.player)
+        case .PAUSE:
+            game.current_state = GameState.GAME_PAUSE
+            return
         case .NONE:
         case:
     }
@@ -299,7 +304,7 @@ main_menu :: proc(game: ^Game)
         case .JUMP:
             game.current_state = GameState.GAME_PLAYING
             game_playing(game)
-        case .NONE:
+        case .NONE, .PAUSE:
         case:
     }
 }
@@ -324,9 +329,25 @@ game_over :: proc(game: ^Game)
             game_reset(game)
             game.current_state = GameState.MAIN_MENU
             game_playing(game)
+        case .NONE, .PAUSE:
+        case:
+    }
+}
+
+game_pause :: proc(game: ^Game)
+{
+    action := game.player.current_action
+    switch action
+    {
+        case .JUMP:
+            game.current_state = GameState.GAME_PLAYING
+            game.player.current_action = Action.JUMP
+            game_playing(game)
+        case .PAUSE:
+            game.current_state = GameState.GAME_PLAYING
+            game.player.current_action = Action.NONE
         case .NONE:
 
-        case:
     }
 }
 
@@ -345,6 +366,8 @@ update :: proc(game: ^Game)
                 game_update_highest_score(game.player.score)
             }
             game_over(game)
+        case .GAME_PAUSE:
+            game_pause(game)
     }
 
 }

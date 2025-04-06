@@ -35,7 +35,7 @@ pipe_draw :: proc(pipe: Pipe, texture: ray.Texture2D)
         ray.Vector2{f32(pipe.score_hitbox.x + PIPE_WIDTH), f32(pipe.score_hitbox.y)},
         upside_down_angle,
         f32(SCALE),
-        ray.WHITE
+        ray.LIGHTGRAY
     )
 
     ray.DrawTextureEx(
@@ -43,7 +43,7 @@ pipe_draw :: proc(pipe: Pipe, texture: ray.Texture2D)
         ray.Vector2{f32(pipe.lower_hitbox.x), f32(pipe.lower_hitbox.y)},
         0.0,
         f32(SCALE),
-        ray.WHITE
+        ray.LIGHTGRAY
     )
     when ODIN_DEBUG{
         hitbox_draw(pipe.upper_hitbox)
@@ -80,7 +80,7 @@ ground_draw :: proc(ground: []Rectangle, textures: Textures)
 {
     for ground_piece in ground
     {
-        ray.DrawTexture(textures.ground_texture, i32(ground_piece.x), i32(ground_piece.y), ray.WHITE)
+        ray.DrawTexture(textures.ground_texture, i32(ground_piece.x), i32(ground_piece.y), ray.LIGHTGRAY)
         when ODIN_DEBUG
         {
             hitbox_draw(ground_piece)
@@ -139,9 +139,14 @@ draw :: proc(game: ^Game, textures: Textures)
         }
         ray.DrawRectangleRounded(game_over_window, 10.0, 0, ray.WHITE)
         ray.DrawRectangleRounded(game_over_inner_window, 10.0, 0, ray.ORANGE)
-        ray.DrawText(ray.TextFormat("Score      %d", game.player.score), 80, 250, 40, ray.WHITE)
-        ray.DrawText(ray.TextFormat("Highscore %d", game.player.score), 80, 290, 40, ray.WHITE)
+        ray.DrawText(ray.TextFormat("Score      %d", game.player.score), 100, 250, 40, ray.WHITE)
+        ray.DrawText(ray.TextFormat("Highscore %d", game.player.highest_score), 100, 290, 40, ray.WHITE)
         ray.DrawText("Press SPACE to try again", 60, 430, 30, ray.WHITE)
+    }
+
+    if game.current_state == GameState.GAME_PAUSE
+    {
+        ray.DrawText("PAUSED", WINDOW_WIDTH/2 - 100, 430, 30, ray.WHITE)
     }
 
     ray.EndDrawing()
@@ -153,6 +158,8 @@ poll :: proc(action: ^Action)
     {
         case ray.IsKeyPressed(ray.KeyboardKey.SPACE) || ray.IsMouseButtonPressed(ray.MouseButton.LEFT):
             action^ = Action.JUMP
+        case ray.IsKeyPressed(ray.KeyboardKey.ESCAPE) || ray.IsMouseButtonPressed(ray.MouseButton.RIGHT):
+            action^ = Action.PAUSE
         case:
             action^ = Action.NONE
     }
