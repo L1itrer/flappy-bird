@@ -125,6 +125,23 @@ draw :: proc(game: ^Game, textures: Textures)
     if game.current_state == GameState.GAME_OVER
     {
         ray.DrawTextureEx(textures.game_over_texture, ray.Vector2({50, 100}), 0, 2, ray.WHITE)
+        game_over_window: ray.Rectangle = {
+            x = 50,
+            y = 200,
+            width = 400,
+            height = 200
+        }
+        game_over_inner_window: ray.Rectangle = {
+            x = 60,
+            y = 210,
+            width = 380,
+            height = 180
+        }
+        ray.DrawRectangleRounded(game_over_window, 10.0, 0, ray.WHITE)
+        ray.DrawRectangleRounded(game_over_inner_window, 10.0, 0, ray.ORANGE)
+        ray.DrawText(ray.TextFormat("Score      %d", game.player.score), 80, 250, 40, ray.WHITE)
+        ray.DrawText(ray.TextFormat("Highscore %d", game.player.score), 80, 290, 40, ray.WHITE)
+        ray.DrawText("Press SPACE to try again", 60, 430, 30, ray.WHITE)
     }
 
     ray.EndDrawing()

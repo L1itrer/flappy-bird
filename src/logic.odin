@@ -7,7 +7,7 @@ import "core:math/rand"
 //DONE: What the hell happens when player tries to go above the pipes
 //DONE: Add background
 //DONE: Tracking Highest Score
-//TODO: Add game over screen
+//DONE: Add game over screen
 //TODO: Improve game menu
 //TODO: Add pause menu
 //TODO: Add sounds
@@ -160,7 +160,7 @@ background_init :: proc(background: []Point)
     {
         background[i] = Point{
             x = BACKGROUND_WIDTH * f32(i) - f32(i*1)
-            // y is zero
+            // y is zero by default
         }
     }
 }
