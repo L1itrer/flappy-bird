@@ -10,6 +10,40 @@ TARGET_FRAME_TIME : f64 : 1.0/TARGET_FPS
 
 
 
+Sounds :: struct {
+    jump_sound: ray.Sound,
+    death_sound: ray.Sound,
+    score_sound: ray.Sound
+}
+
+g_sounds: Sounds
+sounds_load :: proc()
+{
+    g_sounds.jump_sound = ray.LoadSound("./assets/audio/wing.ogg")
+    g_sounds.death_sound = ray.LoadSound("./assets/audio/hit.ogg")
+    g_sounds.score_sound = ray.LoadSound("./assets/audio/point.ogg")
+}
+
+sounds_unload :: proc()
+{
+    ray.UnloadSound(g_sounds.jump_sound)
+    ray.UnloadSound(g_sounds.death_sound)
+    ray.UnloadSound(g_sounds.score_sound)
+}
+
+sound_play :: proc(sound: Sound)
+{
+    switch sound
+    {
+        case .JUMP_SOUND:
+            ray.PlaySound(g_sounds.jump_sound)
+        case .DEATH_SOUND:
+            ray.PlaySound(g_sounds.death_sound)
+        case .SCORE_SOUND:
+            ray.PlaySound(g_sounds.score_sound)
+    }
+}
+
 game_update_highest_score :: proc(score: i32)
 {
     file_handle, err := os.open("highscore.txt", mode = os.O_WRONLY)
@@ -27,7 +61,7 @@ game_update_highest_score :: proc(score: i32)
 
 main :: proc()
 {
-    fmt.printfln("Let the show begin! %s", os.args[0])
+    fmt.printfln("Let the show begin! %s")
     when ODIN_DEBUG {
         fmt.println("...with Debugging!")
     }
@@ -50,11 +84,12 @@ main :: proc()
 
 
     ray.InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
+    ray.InitAudioDevice()
     ray.SetExitKey(ray.KeyboardKey.KEY_NULL)
     ray.SetTargetFPS(TARGET_FPS)
 
     textures := textures_load()
-
+    sounds_load()
 
 
     for !ray.WindowShouldClose() {
@@ -67,5 +102,6 @@ main :: proc()
 
     ray.CloseWindow()
     textures_unload(textures)
+    sounds_unload()
     fmt.printfln("Your highest score was: %v!", game.player.highest_score)
 }

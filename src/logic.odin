@@ -1,6 +1,9 @@
 package main
 
 import "core:math/rand"
+import "core:math"
+
+g_frame_counter := 0
 
 //DONE: Add loopable ground
 //DONE: Player dies when falling to the ground
@@ -8,9 +11,9 @@ import "core:math/rand"
 //DONE: Add background
 //DONE: Tracking Highest Score
 //DONE: Add game over screen
-//TODO: Improve game menu
+//DONE: Improve game menu
 //DONE: Add pause menu
-//TODO: Add sounds
+//DONE: Add sounds
 
 Rectangle :: struct {
     x,y, width, height : f32
@@ -193,7 +196,7 @@ player_init :: proc(player: ^Player)
 {
     player.hitbox = Rectangle{
         x = 100.0,
-        y = f32(WINDOW_HEIGHT/2),
+        y = f32(WINDOW_HEIGHT/2) - 100,
         width = 34.0,
         height = 30.0,
         // a value i pulled out of nowhere
@@ -226,12 +229,12 @@ player_apply_gravity :: proc(player: ^Player, ground: []Rectangle)
             return
         }
     }
+    player.hitbox.y += player.velocity_y
     player.velocity_y += PLAYER_VELOCITY_INCREASE
     if player.velocity_y > PLAYER_VELOCITY_TERMINAL
     {
         player.velocity_y = PLAYER_VELOCITY_TERMINAL
     }
-    player.hitbox.y += player.velocity_y
 }
 
 
@@ -254,6 +257,7 @@ game_playing :: proc(game: ^Game)
     {
         case .JUMP:
             player_jump(&game.player)
+            sound_play(Sound.JUMP_SOUND)
         case .PAUSE:
             game.current_state = GameState.GAME_PAUSE
             return
@@ -267,6 +271,7 @@ game_playing :: proc(game: ^Game)
         {
             game.player.score += 1
             pipe.scored = true
+            sound_play(Sound.SCORE_SOUND)
             //PIPE_VELOCITY += 10 :D
         }
         when GODMODE == false {
@@ -274,7 +279,7 @@ game_playing :: proc(game: ^Game)
             rectangle_check_collision(game.player.hitbox, pipe.upper_hitbox)
             {
                 game.current_state = GameState.GAME_OVER
-
+                sound_play(Sound.DEATH_SOUND)
             }
         }
     }
@@ -286,6 +291,7 @@ game_playing :: proc(game: ^Game)
                 game.current_state = GameState.GAME_OVER
                 game.player.velocity_y = 0
                 game.player.hitbox.y = f32(WINDOW_HEIGHT) - ground_piece.height - game.player.hitbox.height
+                sound_play(Sound.DEATH_SOUND)
             }
         }
     }
@@ -298,7 +304,7 @@ main_menu :: proc(game: ^Game)
 {
     action := game.player.current_action
     player_play_animation(&game.player)
-
+    game.player.hitbox.y += math.sin_f32(f32(g_frame_counter/20))
     switch action
     {
         case .JUMP:
@@ -353,6 +359,7 @@ game_pause :: proc(game: ^Game)
 
 update :: proc(game: ^Game)
 {
+    g_frame_counter += 1
     switch game.current_state
     {
         case .MAIN_MENU:
