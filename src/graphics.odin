@@ -80,11 +80,11 @@ ground_draw :: proc(ground: []Rectangle, textures: Textures)
 {
     for ground_piece in ground
     {
+        ray.DrawTexture(textures.ground_texture, i32(ground_piece.x), i32(ground_piece.y), ray.WHITE)
         when ODIN_DEBUG
         {
             hitbox_draw(ground_piece)
         }
-        ray.DrawTexture(textures.ground_texture, i32(ground_piece.x), i32(ground_piece.y), ray.WHITE)
     }
 }
 

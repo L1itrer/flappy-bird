@@ -6,7 +6,7 @@ import "core:math/rand"
 //DONE: Player dies when falling to the ground
 //DONE: What the hell happens when player tries to go above the pipes
 //DONE: Add background
-//TODO: Tracking Highest Score
+//DONE: Tracking Highest Score
 //TODO: Add game over screen
 //TODO: Improve game menu
 //TODO: Add pause menu
@@ -215,23 +215,21 @@ player_play_animation :: proc(player: ^Player)
 
 player_apply_gravity :: proc(player: ^Player, ground: []Rectangle)
 {
-
     for ground_piece in ground
     {
         if rectangle_check_collision(player.hitbox, ground_piece)
         {
             player.velocity_y = 0
+            player.hitbox.y = f32(WINDOW_HEIGHT) - ground_piece.height - player.hitbox.height
             return
         }
     }
-    player_play_animation(player)
     player.velocity_y += PLAYER_VELOCITY_INCREASE
     if player.velocity_y > PLAYER_VELOCITY_TERMINAL
     {
         player.velocity_y = PLAYER_VELOCITY_TERMINAL
     }
     player.hitbox.y += player.velocity_y
-
 }
 
 
@@ -249,6 +247,7 @@ game_playing :: proc(game: ^Game)
     pipes_move(game.pipes[:])
 
     player_apply_gravity(&game.player, game.ground[:])
+    player_play_animation(&game.player)
     switch action
     {
         case .JUMP:
@@ -270,6 +269,7 @@ game_playing :: proc(game: ^Game)
             rectangle_check_collision(game.player.hitbox, pipe.upper_hitbox)
             {
                 game.current_state = GameState.GAME_OVER
+
             }
         }
     }
@@ -279,6 +279,8 @@ game_playing :: proc(game: ^Game)
             if rectangle_check_collision(game.player.hitbox, ground_piece)
             {
                 game.current_state = GameState.GAME_OVER
+                game.player.velocity_y = 0
+                game.player.hitbox.y = f32(WINDOW_HEIGHT) - ground_piece.height - game.player.hitbox.height
             }
         }
     }
@@ -330,7 +332,6 @@ game_over :: proc(game: ^Game)
 
 update :: proc(game: ^Game)
 {
-
     switch game.current_state
     {
         case .MAIN_MENU:
@@ -341,6 +342,7 @@ update :: proc(game: ^Game)
             if game.player.score > game.player.highest_score
             {
                 game.player.highest_score = game.player.score
+                game_update_highest_score(game.player.score)
             }
             game_over(game)
     }
