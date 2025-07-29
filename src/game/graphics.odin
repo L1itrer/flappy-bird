@@ -105,7 +105,7 @@ draw :: proc() {
 		pipe_draw(pipe)
 	}
 
-	platform.draw_text_and_number("", 30, 30, 50, WHITE, game.player.score)
+	platform.draw_text_and_number("", 30, 30, 50, WHITE, i32(game.player.score))
 	//    ray.DrawText(ray.TextFormat("FPS: %d", ray.GetFPS()), 30, 80, 20, ray.WHITE)
 	ground_draw(game.ground[:])
 
@@ -174,4 +174,3 @@ key_pressed :: proc(key_code: i32) {
 no_action :: proc() {
 	g_game.player.current_action = Action.NONE
 }
-

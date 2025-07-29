@@ -4,6 +4,8 @@ package platform
 import "../common"
 import "base:runtime"
 import "core:fmt"
+import "core:math"
+import "core:math/rand"
 import "core:os"
 import "core:strconv"
 import "core:strings"
@@ -38,6 +40,14 @@ textures_load :: proc "contextless" () {
 	}
 }
 
+sin :: proc "contextless" (a: f32) -> f32 {
+	return math.sin_f32(a)
+}
+
+rand_int :: proc "contextless" (min, max: u32) -> u32 {
+	context = runtime.default_context()
+	return (rand.uint32() % max) + min
+}
 
 textures_unload :: proc "contextless" () {
 	ray.UnloadTexture(textures.pipe_texture)
@@ -53,7 +63,6 @@ init :: proc "contextless" () {
 	score_sound = ray.LoadSound("./assets/audio/point.ogg")
 	read_highest_score()
 	textures_load()
-	read_highest_score()
 }
 
 read_highest_score :: proc "contextless" () -> i32 {

@@ -7,6 +7,9 @@ import "platform"
 import ray "vendor:raylib"
 
 
+@(rodata)
+icon := #load("../assets/favicon.png")
+
 TARGET_FPS :: 60
 TARGET_FRAME_TIME: f64 : 1.0 / TARGET_FPS
 
@@ -36,6 +39,8 @@ main :: proc() {
 	ray.InitAudioDevice()
 	ray.SetExitKey(ray.KeyboardKey.KEY_NULL)
 	ray.SetTargetFPS(TARGET_FPS)
+	icon_img := ray.LoadImageFromMemory(".png", raw_data(icon), i32(len(icon)))
+	ray.SetWindowIcon(icon_img)
 
 	game.init()
 	platform.init()

@@ -2,8 +2,6 @@ package game
 
 import "../common"
 import "../platform"
-import "core:math"
-import "core:math/rand"
 
 g_frame_counter := 0
 
@@ -66,10 +64,16 @@ GameState :: enum {
 	GAME_PAUSE,
 }
 
+@(export)
+degree_to_radians :: proc(degree: f32) -> f32 {
+	return (3.1415 / 180.0) * degree
+}
+
 pipes_init :: proc(pipes: []Pipe) {
 	for i: i32 = 0; i < i32(len(pipes)); i += 1 {
 		possible_ys := PIPE_POSSIBLE_YS
-		magic_y := rand.choice(possible_ys[:])
+		rand_index := platform.rand_int(0, len(possible_ys))
+		magic_y := possible_ys[rand_index]
 		x := f32(WINDOW_WIDTH + i * PIPE_NEXT_DISTANCE)
 		pipes[i] = Pipe {
 			pos_x        = x,
@@ -107,7 +111,8 @@ pipes_move :: proc(pipes: []Pipe) {
 	for &pipe in pipes {
 		if pipe.pos_x <= -PIPE_WIDTH {
 			possible_ys := PIPE_POSSIBLE_YS
-			magic_y: f32 = rand.choice(possible_ys[:])
+			rand_index := platform.rand_int(0, len(possible_ys))
+			magic_y: f32 = possible_ys[rand_index]
 			pipe_set_xy(
 				&pipe,
 				f32(WINDOW_WIDTH + i32(len(pipes) - 2) * PIPE_NEXT_DISTANCE),
@@ -271,7 +276,7 @@ main_menu :: proc() {
 	game: ^Game = &g_game
 	action := game.player.current_action
 	player_play_animation(&game.player)
-	game.player.hitbox.y += math.sin_f32(f32(g_frame_counter / 20))
+	game.player.hitbox.y += platform.sin(f32(g_frame_counter / 20))
 	switch action {
 	case .JUMP:
 		game.current_state = GameState.GAME_PLAYING
