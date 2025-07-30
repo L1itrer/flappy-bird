@@ -79,7 +79,9 @@ function draw_rectangle(x, y, w, h) {
 function draw_texture(tex_id, x, y, rotation, scale) {
   ctx.setTransform(scale, 0, 0, scale, x, y);
   ctx.rotate(degree_to_radians(rotation));
-  ctx.drawImage(sprites[tex_id], -sprites[tex_id].width/2, -sprites[tex_id].height/2);
+  // ctx.drawImage(sprites[tex_id], 0, 0, width, height, x, y, width*scale, height*scale);
+  // ctx.drawImage(sprites[tex_id], -width/2, -height/2);
+  ctx.drawImage(sprites[tex_id], 0, 0);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 

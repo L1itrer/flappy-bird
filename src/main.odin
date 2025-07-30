@@ -6,6 +6,16 @@ import "game"
 import "platform"
 import ray "vendor:raylib"
 
+// CLEANUP TODOS:
+// TODO: pipes are barely visible when starting the game
+// TODO: unhardcode the constans, make them dependant on the window width and height
+// TODO: disable sound button
+// TODO: add some cool font
+// TODO: score on wasm is displayed with different number of spaces than on desktop
+// TODO: add tint of textures to desktop (for better ground display)
+// TODO: Remove single pixel gap between the pipes and the ground
+// TODO: bake in all the textures into the executable for desktop
+
 
 @(rodata)
 icon := #load("../assets/favicon.png")
@@ -39,7 +49,7 @@ main :: proc() {
 	ray.InitAudioDevice()
 	ray.SetExitKey(ray.KeyboardKey.KEY_NULL)
 	ray.SetTargetFPS(TARGET_FPS)
-	icon_img := ray.LoadImageFromMemory(".png", raw_data(icon), i32(len(icon)))
+	icon_img := ray.LoadImageFromMemory(".png", raw_data(icon[8:]), i32(len(icon[8:])))
 	ray.SetWindowIcon(icon_img)
 
 	game.init()
