@@ -1,3 +1,8 @@
 *.exe
 bin/
 .idea/
+
+*.txt
+*.pdb
+*.rdi
+*.wat
