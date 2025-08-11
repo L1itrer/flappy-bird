@@ -2,6 +2,9 @@
 bin/
 .idea/
 
+*.o
+*.out
+
 *.txt
 *.pdb
 *.rdi
