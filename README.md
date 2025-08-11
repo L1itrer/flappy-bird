@@ -11,13 +11,13 @@ The following commands assume that you are within the game's root folder and hav
 ### Windows
 
 ```cmd
-odin build src -out:flappy-bird.exe -o:speed"
+odin build src -out:flappy-bird.exe -o:speed
 ```
 
 ### Linux
 
 ```bash
-odin build src -out:flappy-bird.out -o:speed"
+odin build src -out:flappy-bird.out -o:speed
 ```
 
 ## Browser (wasm platform)
